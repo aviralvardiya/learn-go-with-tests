@@ -3,7 +3,7 @@ package arrays
 import (
 	"reflect"
 	"testing"
-	"hello/generics"
+	"hello/18generics"
 )
 
 func TestArrsum(t *testing.T) {
