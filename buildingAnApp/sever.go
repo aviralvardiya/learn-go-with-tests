@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	// "log"
 	"net/http"
 	"strings"
 )
@@ -16,7 +16,7 @@ type Player struct {
 type PlayerStore interface {
 	GetPlayerScore(name string) int
 	RecordWin(name string)
-	GetLeague() []Player
+	GetLeague() League
 }
 
 type PlayerServer struct {
@@ -73,6 +73,12 @@ func (p *PlayerServer) showScore(w http.ResponseWriter, player string) {
 	fmt.Fprint(w, score)
 }
 
+func (p *PlayerServer) processWin(w http.ResponseWriter, player string) {
+	p.store.RecordWin(player)
+	// log.Printf("^_^ adding win for player %s", player)
+	w.WriteHeader(http.StatusAccepted)
+}
+
 // func GetPlayerScore(name string) string {
 // 	if name == "virat" {
 // 		return "20"
@@ -84,10 +90,3 @@ func (p *PlayerServer) showScore(w http.ResponseWriter, player string) {
 
 // 	return ""
 // }
-
-func (p *PlayerServer) processWin(w http.ResponseWriter, player string) {
-	p.store.RecordWin(player)
-	log.Printf("^_^ adding win for player %s", player)
-	w.WriteHeader(http.StatusAccepted)
-}
-
