@@ -2,11 +2,13 @@ package poker
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http/httptest"
 	"os"
 	"reflect"
 	"testing"
+	"time"
 )
 
 type StubPlayerStore struct {
@@ -122,4 +124,24 @@ func assertNoError(t testing.TB, err error) {
 	if err != nil {
 		t.Fatalf("didn't expect an error but got one, %v", err)
 	}
+}
+
+
+type ScheduledAlert struct {
+	At     time.Duration
+	Amount int
+}
+
+func (s ScheduledAlert) String() string {
+	return fmt.Sprintf("%d chips at %v", s.Amount, s.At)
+}
+
+// SpyBlindAlerter allows you to spy on ScheduleAlertAt calls.
+type SpyBlindAlerter struct {
+	Alerts []ScheduledAlert
+}
+
+// ScheduleAlertAt records alerts that have been scheduled.
+func (s *SpyBlindAlerter) ScheduleAlertAt(at time.Duration, amount int) {
+	s.Alerts = append(s.Alerts, ScheduledAlert{at, amount})
 }

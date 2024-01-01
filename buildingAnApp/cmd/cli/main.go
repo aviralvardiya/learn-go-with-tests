@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"hello/buildingAnApp"
+	poker "hello/buildingAnApp"
 	"log"
 	"os"
 )
@@ -13,13 +13,14 @@ func main() {
 	fmt.Println("Let's play poker")
 	fmt.Println("Type {Name} wins to record a win")
 
-	store,close,err:=poker.FileSystemPlayerStoreFromFile(dbFileName)
+	store, close, err := poker.FileSystemPlayerStoreFromFile(dbFileName)
 
-	if(err!=nil){
+	if err != nil {
 		log.Fatal(err)
 	}
 	defer close()
 
-	game := poker.NewCLI(store,os.Stdin)
-	game.PlayPoker()
+	game := poker.NewTexasHoldem(poker.BlindAlerterFunc(poker.StdOutAlerter), store)
+	cli := poker.NewCLI(os.Stdin, os.Stdout, game)
+	cli.PlayPoker()
 }
