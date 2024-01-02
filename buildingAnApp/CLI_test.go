@@ -18,6 +18,7 @@ var dummyStdOut = &bytes.Buffer{}
 type scheduledAlert struct {
 	at     time.Duration
 	amount int
+	to io.Writer
 }
 
 func (s scheduledAlert) String() string {
@@ -28,21 +29,23 @@ type SpyBlindAlerter struct {
 	alerts []scheduledAlert
 }
 
-func (s *SpyBlindAlerter) ScheduleAlertAt(at time.Duration, amount int) {
-	s.alerts = append(s.alerts, scheduledAlert{at, amount})
+func (s *SpyBlindAlerter) ScheduleAlertAt(at time.Duration, amount int,to io.Writer) {
+	s.alerts = append(s.alerts, scheduledAlert{at, amount,to})
 }
 
 type GameSpy struct {
 	StartCalled     bool
 	StartCalledWith int
+	BlindAlert []byte
 
 	FinishedCalled   bool
 	FinishCalledWith string
 }
 
-func (g *GameSpy) Start(numberOfPlayers int) {
+func (g *GameSpy) Start(numberOfPlayers int,to io.Writer) {
 	g.StartCalled = true
 	g.StartCalledWith = numberOfPlayers
+	to.Write(g.BlindAlert)
 }
 
 func (g *GameSpy) Finish(winner string) {
@@ -131,9 +134,24 @@ func assertGameNotStarted(t testing.TB, game *GameSpy) {
 
 func assertFinishCalledWith(t testing.TB, game *GameSpy, winner string) {
 	t.Helper()
-	if game.FinishCalledWith != winner {
+
+	passed := retryUntil(500*time.Millisecond, func() bool {
+		return game.FinishCalledWith == winner
+	})
+
+	if !passed {
 		t.Errorf("expected finish called with %q but got %q", winner, game.FinishCalledWith)
 	}
+}
+
+func retryUntil(d time.Duration, f func() bool) bool {
+	deadline := time.Now().Add(d)
+	for time.Now().Before(deadline) {
+		if f() {
+			return true
+		}
+	}
+	return false
 }
 
 func assertMessagesSentToUser(t testing.TB, stdout *bytes.Buffer, messages ...string) {

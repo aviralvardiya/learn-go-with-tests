@@ -40,7 +40,7 @@ func (cli *CLI) PlayPoker() {
 		fmt.Print("Please enter a numeric input\n")
 		return
 	}
-	cli.game.Start(numberOfPlayers)
+	cli.game.Start(numberOfPlayers, cli.out)
 
 	winnerInput := cli.readLine()
 	winner,err := extractWinner(winnerInput)
@@ -77,7 +77,7 @@ func (cli *CLI) readLine() string {
 // }
 
 type Game interface {
-	Start(numberOfPlayers int)
+	Start(numberOfPlayers int,alertsDestination io.Writer)
 	Finish(winner string)
 }
 
